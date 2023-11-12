@@ -15,10 +15,16 @@ if (PICO_CYW43_SUPPORTED)
         WIFI_PASSWORD=\"${WIFI_PASSWORD}\"
     )
 
+    target_include_directories(
+        led_strip
+        PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}
+    )
+
     target_link_libraries(
         led_strip
         PRIVATE
-        pico_cyw43_arch_none
+        pico_cyw43_arch_lwip_threadsafe_background
         pico_stdlib
     )
 
