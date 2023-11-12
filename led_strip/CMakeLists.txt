@@ -6,6 +6,7 @@ if (PICO_CYW43_SUPPORTED)
         led_strip
         PRIVATE
         main.c
+        net.c
     )
 
     target_compile_definitions(
