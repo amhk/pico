@@ -4,7 +4,15 @@
 #include "pico/cyw43_arch.h"
 #include "pico/stdlib.h"
 
-static void on_command_cb(const char* command) { INFO("hello %d", 42); }
+static void on_command_cb(const char* command) {
+    INFO("command='%s'", command);
+    if (strcmp(command, "on") == 0) {
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
+    }
+    if (strcmp(command, "off") == 0) {
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
+    }
+}
 
 int main() {
     stdio_init_all();
@@ -19,6 +27,6 @@ int main() {
         PANIC("failed to connect");
     }
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
-    tcp_server();
+    tcp_server(on_command_cb);
     return 1;  // won't happen
 }

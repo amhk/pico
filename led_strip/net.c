@@ -5,6 +5,8 @@
 #include "lwip/tcp.h"
 #include "pico/cyw43_arch.h"
 
+static void (*g_on_command_cb)(const char *) = NULL;
+
 static err_t tcp_server_recv_cb(void *arg, struct tcp_pcb *client_pcb,
                                 struct pbuf *p, err_t err) {
     INFO("arg=%p client_pcb=%p p=%p err=%d", arg, p, client_pcb, err);
@@ -23,15 +25,7 @@ static err_t tcp_server_recv_cb(void *arg, struct tcp_pcb *client_pcb,
     while (strlen(buf) > 0 && isspace(buf[strlen(buf) - 1])) {
         buf[strlen(buf) - 1] = '\0';
     }
-
-    // payload should be returned to main.c via callback for further
-    // processing; this will be implemented in a follow-up commit
-    if (strcmp(buf, "on") == 0) {
-        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
-    }
-    if (strcmp(buf, "off") == 0) {
-        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
-    }
+    g_on_command_cb(buf);
 
     free(buf);
     return ERR_OK;
@@ -57,7 +51,9 @@ static err_t tcp_server_accept_cb(void *arg, struct tcp_pcb *client_pcb,
     return ERR_OK;
 }
 
-[[noreturn]] void tcp_server() {
+[[noreturn]] void tcp_server(void (*on_command_cb)(const char *)) {
+    g_on_command_cb = on_command_cb;
+
     struct tcp_pcb *pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
     if (!pcb) {
         PANIC("failed to create pcb");
